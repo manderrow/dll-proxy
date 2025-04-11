@@ -75,7 +75,7 @@ fn empty(comptime T: type) *[0:0]T {
 
 pub fn loadProxy(module: std.os.windows.HMODULE) !void {
     var module_path_buf = paths.ModulePathBuf{};
-    const module_path = try module_path_buf.get(module).?;
+    const module_path = (try module_path_buf.get(module)).?;
 
     const module_name = paths.getFileName(u16, module_path, true);
 
