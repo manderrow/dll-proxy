@@ -1,0 +1,17 @@
+.{
+    .name = .dll_proxy,
+
+    .version = "0.0.0",
+
+    .fingerprint = 0x645cd3e2b3f03958,
+
+    .minimum_zig_version = "0.14.0",
+
+    .dependencies = .{},
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
