@@ -19,25 +19,21 @@ pub const ModulePathBuf = struct {
     }
 };
 
-fn splitPath(comptime Char: type, path: []const Char) usize {
+pub fn getFileName(comptime Char: type, path: []const Char) []const Char {
     if (path.len == 0) {
-        @panic("Empty path provided to splitPath");
+        @panic("Empty path provided to getFileName");
     }
     var i = path.len;
     while (true) {
         i -= 1;
         const c = path[i];
         if (c == '/' or c == '\\') {
-            return .{ .parent = i + 1 };
+            return path[i + 1 ..];
         }
         if (i == 0) {
-            return .{ .parent = 0 };
+            return path;
         }
     }
-}
-
-pub fn getFileName(comptime Char: type, path: []const Char) []const Char {
-    return path[splitPath(Char, path)..];
 }
 
 test "get_file_name" {

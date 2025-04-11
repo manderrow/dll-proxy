@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) !void {
 
     const lib = b.addLibrary(.{
         .linkage = .static,
-        .name = try std.fmt.allocPrint(b.allocator, "dll_proxy_{s}", .{@tagName(target.result.abi)}),
+        .name = "dll_proxy",
         .root_module = lib_mod,
     });
 

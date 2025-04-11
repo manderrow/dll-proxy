@@ -105,3 +105,7 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
 
     loadFunctions(handle);
 }
+
+test {
+    _ = loadProxy;
+}
