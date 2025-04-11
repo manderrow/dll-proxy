@@ -77,7 +77,7 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
     var module_path_buf = paths.ModulePathBuf{};
     const module_path = (try module_path_buf.get(module)).?;
 
-    const module_name = paths.getFileName(u16, module_path, true);
+    const module_name = paths.getFileName(u16, module_path);
 
     const proxy_name = dll_name ++ ".dll";
     if (!eqlIgnoreCase(module_name, proxy_name)) {
