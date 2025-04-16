@@ -95,7 +95,7 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
     const n = std.os.windows.kernel32.GetSystemDirectoryW(&sys_full_path_buf, sys_len);
     std.debug.assert(n == sys_len - 1);
     sys_full_path_buf[n] = std.fs.path.sep;
-    @memcpy(sys_full_path_buf[n + 1 ..], module_name);
+    @memcpy(sys_full_path_buf[n + 1 ..][0..module_name.len], module_name);
     sys_full_path_buf[sys_len + module_name.len] = 0;
     const sys_full_path = sys_full_path_buf[0 .. sys_len + module_name.len :0];
 
