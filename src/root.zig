@@ -50,9 +50,16 @@ comptime {
     }
 }
 
+fn panicLocateFunction(name: []const u8) noreturn {
+    @branchHint(.cold);
+    std.debug.panic("Failed to locate function {s}", .{name});
+}
+
 fn loadFunctions(dll: std.os.windows.HMODULE) void {
     inline for (comptime std.meta.fieldNames(ProxyFuncAddrs)) |field| {
-        @field(proxy_func_addrs, field) = std.os.windows.kernel32.GetProcAddress(dll, field).?;
+        @field(proxy_func_addrs, field) = std.os.windows.kernel32.GetProcAddress(dll, field) orelse {
+            panicLocateFunction(field);
+        };
     }
 }
 
