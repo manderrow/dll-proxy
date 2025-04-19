@@ -3,7 +3,7 @@ const std = @import("std");
 
 const paths = @import("paths.zig");
 
-pub const logger = std.log.scoped(.lib_proxy);
+pub const logger = std.log.scoped(.dll_proxy);
 
 const dll_names: []const [:0]const u8 = &.{ "version", "winhttp" };
 
