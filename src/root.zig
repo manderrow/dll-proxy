@@ -3,7 +3,7 @@ const std = @import("std");
 
 const paths = @import("paths.zig");
 
-pub const logger = std.log.scoped(.dll_proxy);
+const logger = std.log.scoped(.dll_proxy);
 
 const dll_names: []const [:0]const u8 = &.{ "version", "winhttp" };
 
@@ -234,5 +234,36 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
 }
 
 test {
-    std.testing.refAllDecls(@This());
+    if (builtin.os.tag == .windows) {
+        std.testing.refAllDecls(@This());
+    }
+}
+
+test "dump" {
+    // This test exists for manual verification that the symbol filtering is working correctly.
+    // There is no need to run and dump every time.
+    if (true) {
+        return;
+    }
+    for (std.meta.tags(DllName)) |name| {
+        const includes = getDllIncludes(name);
+        std.debug.print("{s}:\n", .{@tagName(name)});
+        inline for (comptime std.meta.fieldNames(ProxyFuncAddrs)) |field| {
+            if (@field(includes, field)) {
+                std.debug.print("  {s}\n", .{field});
+            }
+        }
+    }
+}
+
+test "findDllMatch" {
+    const utf16Lit = std.unicode.utf8ToUtf16LeStringLiteral;
+
+    try std.testing.expectEqual(.version, findDllMatch(utf16Lit("VERSION.DLL")));
+    try std.testing.expectEqual(.version, findDllMatch(utf16Lit("version.dll")));
+    try std.testing.expectEqual(.version, findDllMatch(utf16Lit("versIon.dll")));
+
+    try std.testing.expectEqual(.winhttp, findDllMatch(utf16Lit("WINHTTP.DLL")));
+    try std.testing.expectEqual(.winhttp, findDllMatch(utf16Lit("winhttp.dll")));
+    try std.testing.expectEqual(.winhttp, findDllMatch(utf16Lit("WinhttP.DLL")));
 }
