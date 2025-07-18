@@ -156,7 +156,7 @@ fn getDllIncludes(dll_name: DllName) *const DllIncludes {
 
 fn logUnlinkableFunction(name: []const u8, path: []const u16) void {
     @branchHint(.cold);
-    logger.warn("Failed to locate function {s} in {s}", .{ name, std.unicode.fmtUtf16Le(path) });
+    logger.warn("Failed to locate function {s} in {f}", .{ name, std.unicode.fmtUtf16Le(path) });
 }
 
 fn loadFunctions(dll: std.os.windows.HMODULE, path: []const u16, dll_name: DllName) void {
@@ -208,10 +208,10 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
     const module_name = paths.getFileName(u16, module_path);
 
     const dll_name = findDllMatch(module_name) orelse {
-        logger.debug("{} is not supported for proxying", .{std.unicode.fmtUtf16Le(module_name)});
+        logger.debug("{f} is not supported for proxying", .{std.unicode.fmtUtf16Le(module_name)});
         return error.UnsupportedName;
     };
-    logger.debug("Detected injection as supported proxy {}. Loading actual.", .{std.unicode.fmtUtf16Le(module_name)});
+    logger.debug("Detected injection as supported proxy {f}. Loading actual.", .{std.unicode.fmtUtf16Le(module_name)});
 
     // sys_len includes null-terminator
     const sys_len = std.os.windows.kernel32.GetSystemDirectoryW(empty(u16), 0);
@@ -226,7 +226,7 @@ pub fn loadProxy(module: std.os.windows.HMODULE) !void {
     sys_full_path_buf[sys_len + module_name.len] = 0;
     const sys_full_path = sys_full_path_buf[0 .. sys_len + module_name.len :0];
 
-    logger.debug("Looking for actual DLL at {}", .{std.unicode.fmtUtf16Le(sys_full_path)});
+    logger.debug("Looking for actual DLL at {f}", .{std.unicode.fmtUtf16Le(sys_full_path)});
 
     const handle = try std.os.windows.LoadLibraryW(sys_full_path);
 
