@@ -72,7 +72,7 @@ const EachDllIncludes = blk: {
             .type = DllIncludes,
             .default_value_ptr = &DllIncludes{},
             .is_comptime = false,
-            .alignment = 0,
+            .alignment = @alignOf(DllIncludes),
         }};
     }
 
@@ -111,7 +111,7 @@ const ProxyFuncAddrs = blk: {
                 .type = FuncAddr,
                 .default_value_ptr = @ptrCast(&@as(FuncAddr, null)),
                 .is_comptime = false,
-                .alignment = 0,
+                .alignment = @alignOf(FuncAddr),
             }};
         }
     }
