@@ -5,25 +5,12 @@ const paths = @import("paths.zig");
 
 const logger = std.log.scoped(.dll_proxy);
 
-const dll_names: []const [:0]const u8 = &.{ "version", "winhttp" };
-
-const DllName = blk: {
-    var fields: []const std.builtin.Type.EnumField = &.{};
-
-    for (dll_names, 0..) |dll_name, i| {
-        fields = fields ++ .{std.builtin.Type.EnumField{
-            .name = dll_name,
-            .value = i,
-        }};
-    }
-
-    break :blk @Type(.{ .@"enum" = .{
-        .fields = fields,
-        .decls = &.{},
-        .tag_type = u8,
-        .is_exhaustive = true,
-    } });
+const DllName = enum {
+    version,
+    winhttp,
 };
+
+const dll_names = std.meta.fieldNames(DllName);
 
 fn proxyFunctions(comptime dll_name: []const u8) []const []const u8 {
     var buf: []const []const u8 = &.{};
@@ -43,45 +30,27 @@ fn proxyFunctions(comptime dll_name: []const u8) []const []const u8 {
 }
 
 const DllIncludes = blk: {
-    var fields: []const std.builtin.Type.StructField = &.{};
+    const field_names = std.meta.fieldNames(ProxyFuncAddrs);
+    const field_types: [field_names.len]type = @splat(bool);
+    const field_attrs: [field_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+        .@"comptime" = false,
+        .@"align" = null,
+        .default_value_ptr = &false,
+    });
 
-    for (std.meta.fieldNames(ProxyFuncAddrs)) |func_name| {
-        fields = fields ++ .{std.builtin.Type.StructField{
-            .name = func_name,
-            .type = bool,
-            .default_value_ptr = &false,
-            .is_comptime = false,
-            .alignment = 0,
-        }};
-    }
-
-    break :blk @Type(.{ .@"struct" = .{
-        .layout = .@"packed",
-        .fields = fields,
-        .decls = &.{},
-        .is_tuple = false,
-    } });
+    break :blk @Struct(.@"packed", null, field_names, &field_types, &field_attrs);
 };
 
 const EachDllIncludes = blk: {
-    var fields: []const std.builtin.Type.StructField = &.{};
+    const field_types: [dll_names.len]type = @splat(DllIncludes);
+    const field_attrs: [dll_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+        .@"comptime" = false,
+        // .@"align" = @alignOf(DllIncludes),
+        .@"align" = null,
+        .default_value_ptr = &DllIncludes{},
+    });
 
-    for (dll_names) |dll_name| {
-        fields = fields ++ .{std.builtin.Type.StructField{
-            .name = dll_name,
-            .type = DllIncludes,
-            .default_value_ptr = &DllIncludes{},
-            .is_comptime = false,
-            .alignment = @alignOf(DllIncludes),
-        }};
-    }
-
-    break :blk @Type(.{ .@"struct" = .{
-        .layout = .auto,
-        .fields = fields,
-        .decls = &.{},
-        .is_tuple = false,
-    } });
+    break :blk @Struct(.auto, null, dll_names, &field_types, &field_attrs);
 };
 
 const each_dll_includes = blk: {
@@ -90,8 +59,9 @@ const each_dll_includes = blk: {
     var includes: EachDllIncludes = .{};
 
     for (dll_names) |dll_name| {
+        const dll_includes = &@field(includes, dll_name);
         for (proxyFunctions(dll_name)) |name| {
-            @field(@field(includes, dll_name), name) = true;
+            @field(dll_includes, name) = true;
         }
     }
 
@@ -101,27 +71,23 @@ const each_dll_includes = blk: {
 const ProxyFuncAddrs = blk: {
     @setEvalBranchQuota(8000);
 
-    var fields: []const std.builtin.Type.StructField = &.{};
+    var field_names: []const []const u8 = &.{};
 
     for (dll_names) |dll_name| {
-        for (proxyFunctions(dll_name)) |name| {
-            const FuncAddr = ?*fn () callconv(.c) void;
-            fields = fields ++ .{std.builtin.Type.StructField{
-                .name = @ptrCast(name ++ .{0}),
-                .type = FuncAddr,
-                .default_value_ptr = @ptrCast(&@as(FuncAddr, null)),
-                .is_comptime = false,
-                .alignment = @alignOf(FuncAddr),
-            }};
-        }
+        field_names = field_names ++ proxyFunctions(dll_name);
     }
 
-    break :blk @Type(.{ .@"struct" = .{
-        .layout = .auto,
-        .fields = fields,
-        .decls = &.{},
-        .is_tuple = false,
-    } });
+    const FuncAddr = ?*fn () callconv(.c) void;
+
+    const field_types: [field_names.len]type = @splat(FuncAddr);
+    const field_attrs: [field_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+        .@"comptime" = false,
+        // .@"align" = @alignOf(FuncAddr),
+        .@"align" = null,
+        .default_value_ptr = @ptrCast(&@as(FuncAddr, null)),
+    });
+
+    break :blk @Struct(.auto, null, field_names, &field_types, &field_attrs);
 };
 
 var proxy_func_addrs: ProxyFuncAddrs = .{};
@@ -146,12 +112,9 @@ comptime {
 }
 
 fn getDllIncludes(dll_name: DllName) *const DllIncludes {
-    inline for (dll_names) |other_dll_name| {
-        if (@field(DllName, other_dll_name) == dll_name) {
-            return &@field(each_dll_includes, other_dll_name);
-        }
-    }
-    unreachable;
+    return switch (dll_name) {
+        inline else => |name| &@field(each_dll_includes, @tagName(name)),
+    };
 }
 
 fn logUnlinkableFunction(name: []const u8, path: []const u16) void {
