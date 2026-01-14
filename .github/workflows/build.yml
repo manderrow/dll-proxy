@@ -51,9 +51,7 @@ jobs:
               with:
                   name: Artifacts
                   path: |
-                      zig-out/bin/*
                       zig-out/lib/*
-                      zig-out/obj/*
                       hashes.sha256
                       hashes.blake3
                   if-no-files-found: error
@@ -62,9 +60,7 @@ jobs:
               uses: softprops/action-gh-release@v2
               with:
                   files: |
-                      zig-out/bin/*
                       zig-out/lib/*
-                      zig-out/obj/*
                       hashes.sha256
                       hashes.blake3
                   fail_on_unmatched_files: true
@@ -73,9 +69,7 @@ jobs:
               uses: softprops/action-gh-release@v2
               with:
                   files: |
-                      zig-out/bin/*
                       zig-out/lib/*
-                      zig-out/obj/*
                       hashes.sha256
                       hashes.blake3
                   prerelease: true
