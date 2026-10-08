@@ -32,7 +32,7 @@ fn proxyFunctions(comptime dll_name: []const u8) []const []const u8 {
 const DllIncludes = blk: {
     const field_names = std.meta.fieldNames(ProxyFuncAddrs);
     const field_types: [field_names.len]type = @splat(bool);
-    const field_attrs: [field_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+    const field_attrs: [field_names.len]std.builtin.Type.Struct.FieldAttributes = @splat(.{
         .@"comptime" = false,
         .@"align" = null,
         .default_value_ptr = &false,
@@ -43,7 +43,7 @@ const DllIncludes = blk: {
 
 const EachDllIncludes = blk: {
     const field_types: [dll_names.len]type = @splat(DllIncludes);
-    const field_attrs: [dll_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+    const field_attrs: [dll_names.len]std.builtin.Type.Struct.FieldAttributes = @splat(.{
         .@"comptime" = false,
         // .@"align" = @alignOf(DllIncludes),
         .@"align" = null,
@@ -80,7 +80,7 @@ const ProxyFuncAddrs = blk: {
     const FuncAddr = ?*fn () callconv(.c) void;
 
     const field_types: [field_names.len]type = @splat(FuncAddr);
-    const field_attrs: [field_names.len]std.builtin.Type.StructField.Attributes = @splat(.{
+    const field_attrs: [field_names.len]std.builtin.Type.Struct.FieldAttributes = @splat(.{
         .@"comptime" = false,
         // .@"align" = @alignOf(FuncAddr),
         .@"align" = null,
